@@ -1,10 +1,11 @@
 const express = require("express");
 const Book = require("../models/Book");
 const Transaction = require("../models/Transaction"); // Ensure you import the Transaction model
+const { authenticate, requireAdmin } = require("../middleware/auth");
 const router = express.Router();
 
 // Add Book
-router.post("/add", async (req, res) => {
+router.post("/add", authenticate, requireAdmin, async (req, res) => {
   const { title, author, serialNumber } = req.body;
 
   // Validate input
@@ -52,7 +53,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Update Book
-router.put("/update/:id", async (req, res) => {
+router.put("/update/:id", authenticate, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { title, author, serialNumber } = req.body;
 
@@ -79,7 +80,7 @@ router.put("/update/:id", async (req, res) => {
 });
 
 // Issue Book
-router.post("/issue", async (req, res) => {
+router.post("/issue", authenticate, requireAdmin, async (req, res) => {
   const { bookId, userId } = req.body;
 
   const book = await Book.findById(bookId);
@@ -102,7 +103,7 @@ router.post("/issue", async (req, res) => {
 });
 
 // Return Book
-router.post("/return", async (req, res) => {
+router.post("/return", authenticate, requireAdmin, async (req, res) => {
   const { bookId, transactionId, returnDate, finePaid } = req.body;
 
   try {

@@ -2,9 +2,15 @@ import axios from "axios";
 
 // Create an Axios instance with default settings
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:5000/api", // Replace with your backend URL
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
 });
 
-// You can add interceptors here if needed
+axiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export default axiosInstance;

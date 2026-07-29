@@ -1,70 +1,141 @@
-# Getting Started with Create React App
+# Library Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A MERN app for managing a library's books, members, and checkouts — admins add/issue/return books, manage memberships, and track fines.
 
-## Available Scripts
+## Overview
 
-In the project directory, you can run:
+An internal library-management tool: admins log in to add books, register memberships, issue and return books to members, and collect overdue fines. All management actions are restricted to admin accounts (enforced server-side).
 
-### `npm start`
+## Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- JWT-based login/registration with bcrypt-hashed passwords, admin vs. regular user roles
+- Book catalog: add, update, search, issue, and return
+- Membership management: add, update, delete
+- Transaction tracking: issue/return dates, fine payment
+- Admin-only user management (list, add, update, delete)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Screenshots
 
-### `npm test`
+| Login | Available Books |
+|---|---|
+| ![Login form](docs/images/login.png) | ![Book catalog with one book listed, showing Update and Issue actions](docs/images/books.png) |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+| Memberships |
+|---|
+| ![Memberships page with empty state](docs/images/members.png) |
 
-### `npm run build`
+## Technology Stack
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+**Frontend:** React 18, React Router 6, Bootstrap, Axios
+**Backend:** Node.js, Express, MongoDB (Mongoose), JWT, bcryptjs
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Local Installation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Requires Node.js 18+ and a MongoDB instance.
 
-### `npm run eject`
+```bash
+git clone https://github.com/Rockstar100/library_Management.git
+cd library_Management
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Backend
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+cd backend
+npm install
+cp .env.example .env   # fill in MONGO_URI and JWT_SECRET
+node server.js
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Frontend
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm install
+npm start
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000), register an account with `role: "admin"` via the Register page or directly against `POST /api/auth/register`, then log in.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Environment variables
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+**backend/.env**
 
-### Code Splitting
+| Variable | Description | Default |
+|---|---|---|
+| `PORT` | Port the API listens on | `5000` |
+| `MONGO_URI` | MongoDB connection string | `mongodb://localhost:27017/libraryDB` |
+| `JWT_SECRET` | Secret used to sign auth tokens | — (required) |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+**frontend**
 
-### Analyzing the Bundle Size
+| Variable | Description | Default |
+|---|---|---|
+| `REACT_APP_API_URL` | Base URL of the backend API | `http://localhost:5000/api` |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Available Commands
 
-### Making a Progressive Web App
+| Command | Description |
+|---|---|
+| `npm start` (root) | Run the React app in development mode |
+| `npm run build` (root) | Build the React app for production |
+| `node server.js` (backend) | Run the API |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Project Structure
 
-### Advanced Configuration
+```
+library_Management/
+├── src/
+│   ├── components/
+│   │   ├── Auth/                # Login, Register
+│   │   ├── Books/                 # BookList, AddBook, UpdateBook
+│   │   ├── Membership/            # MembershipList, Add/UpdateMembership
+│   │   ├── Transactions/          # IssueBook, ReturnBook, FinePay
+│   │   └── UserManagement/        # UserList, Add/UpdateUser
+│   └── axiosConfig.js            # shared axios client, attaches JWT
+└── backend/
+    ├── middleware/auth.js         # JWT verification + admin role guard
+    ├── models/                     # Book, Membership, Transaction, User
+    ├── routes/
+    └── server.js
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## API Reference
 
-### Deployment
+Routes marked "admin" require `Authorization: Bearer <token>` from an account with `role: "admin"`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | — | Register an account |
+| `POST` | `/api/auth/login` | — | Log in, returns a JWT |
+| `GET` | `/api/books/search` | — | List/search books |
+| `GET` | `/api/books/:id` | — | Get a book by ID |
+| `POST` | `/api/books/add` | admin | Add a book |
+| `PUT` | `/api/books/update/:id` | admin | Update a book |
+| `POST` | `/api/books/issue` | admin | Issue a book to a member |
+| `POST` | `/api/books/return` | admin | Return a book |
+| `POST` | `/api/transaction/issue` / `/return` / `/pay-fine` | admin | Transaction lifecycle + fine payment |
+| `GET`/`POST`/`PUT`/`DELETE` | `/api/memberships/*` | admin | Membership CRUD |
+| `GET`/`POST`/`PUT`/`DELETE` | `/api/users/*` | admin | User management (passwords excluded from responses) |
 
-### `npm run build` fails to minify
+## Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Needs a persistent Node process and MongoDB — not GitHub Pages material. Recommended: [Render](https://render.com) or [Railway](https://railway.app) (Node web service) + [MongoDB Atlas](https://www.mongodb.com/atlas) free tier for the backend; Vercel/Netlify for the frontend. No live deployment has been set up for this repository.
+
+## Known Limitations
+
+- No self-service member accounts — memberships are managed entirely by admins; there's no member-facing login.
+- No pagination on book/membership/user lists.
+
+## Future Improvements
+
+- Add member-facing accounts for self-service book search/history.
+- Add pagination and filtering to list views.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+## Author
+
+**Parveen Jaiswal**
+GitHub: [@Rockstar100](https://github.com/Rockstar100)

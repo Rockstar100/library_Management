@@ -1,9 +1,10 @@
 const express = require("express");
 const Membership = require("../models/Membership");
+const { authenticate, requireAdmin } = require("../middleware/auth");
 const router = express.Router();
 
 // Add Membership
-router.post("/add", async (req, res) => {
+router.post("/add", authenticate, requireAdmin, async (req, res) => {
   const { name, email, duration } = req.body;
 
   if (!name || !email || !duration) {
@@ -21,7 +22,7 @@ router.post("/add", async (req, res) => {
 });
 
 // Get all memberships
-router.get("/all", async (req, res) => {
+router.get("/all", authenticate, requireAdmin, async (req, res) => {
   try {
     const memberships = await Membership.find({});
     res.json(memberships);
@@ -32,7 +33,7 @@ router.get("/all", async (req, res) => {
 });
 
 // Find membership by ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const membership = await Membership.findById(req.params.id);
     if (!membership) {
@@ -46,7 +47,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Update Membership by ID
-router.put("/update/:id", async (req, res) => {
+router.put("/update/:id", authenticate, requireAdmin, async (req, res) => {
   const { name, email, duration } = req.body;
 
   try {
@@ -68,13 +69,11 @@ router.put("/update/:id", async (req, res) => {
 });
 
 // Delete Membership by ID
-// Delete Membership by ID
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const membership = await Membership.findById(req.params.id);
     if (!membership) return res.status(404).json({ message: "Membership not found." });
 
-    // Use findByIdAndDelete instead of remove
     await Membership.findByIdAndDelete(req.params.id);
     res.json({ message: "Membership deleted successfully." });
   } catch (error) {
@@ -82,6 +81,5 @@ router.delete("/delete/:id", async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 });
-
 
 module.exports = router;
