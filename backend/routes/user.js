@@ -2,10 +2,12 @@ const express = require("express");
 const User = require("../models/User");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
+const { authenticate, requireAdmin } = require("../middleware/auth");
+
 // Get all users
-router.get("/all", async (req, res) => {
+router.get("/all", authenticate, requireAdmin, async (req, res) => {
   try {
-    const users = await User.find({});
+    const users = await User.find({}).select("-password");
     res.json(users);
   } catch (error) {
     console.error(error);
@@ -14,9 +16,9 @@ router.get("/all", async (req, res) => {
 });
 
 // Get user by ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticate, requireAdmin, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found." });
     res.json(user);
   } catch (error) {
@@ -26,7 +28,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // Add a new user
-router.post("/add", async (req, res) => {
+router.post("/add", authenticate, requireAdmin, async (req, res) => {
   const { name, email, role, password } = req.body; // Include password in destructuring
 
   // Validate input
@@ -48,7 +50,7 @@ router.post("/add", async (req, res) => {
   }
 });
 // Update a user
-router.put("/update/:id", async (req, res) => {
+router.put("/update/:id", authenticate, requireAdmin, async (req, res) => {
   const { name, email, role } = req.body;
 
   try {
@@ -68,12 +70,11 @@ router.put("/update/:id", async (req, res) => {
 });
 
 // Delete a user
-router.delete("/delete/:id", async (req, res) => {
+router.delete("/delete/:id", authenticate, requireAdmin, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    await user.remove();
     res.json({ message: "User deleted successfully." });
   } catch (error) {
     console.error(error);

@@ -1,10 +1,11 @@
 const express = require("express");
 const Book = require("../models/Book");
 const Transaction = require("../models/Transaction");
+const { authenticate, requireAdmin } = require("../middleware/auth");
 const router = express.Router();
 
 // Issue Book
-router.post("/issue", async (req, res) => {
+router.post("/issue", authenticate, requireAdmin, async (req, res) => {
   const { bookId, userId } = req.body;
 
   try {
@@ -37,7 +38,7 @@ router.post("/issue", async (req, res) => {
 });
 
 // Return Book
-router.post("/return", async (req, res) => {
+router.post("/return", authenticate, requireAdmin, async (req, res) => {
   const { transactionId, returnDate, finePaid } = req.body;
 
   try {
@@ -65,7 +66,7 @@ router.post("/return", async (req, res) => {
 });
 
 // Fine Payment
-router.post("/pay-fine", async (req, res) => {
+router.post("/pay-fine", authenticate, requireAdmin, async (req, res) => {
   const { transactionId, fineAmount } = req.body;
 
   try {
